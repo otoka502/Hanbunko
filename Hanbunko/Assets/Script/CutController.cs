@@ -9,7 +9,12 @@ public class CutController : MonoBehaviour
     [Header("基本設定")]
     [SerializeField] private LineRenderer lineRenderer;
     [SerializeField] private Renderer foodRenderer;
+
+    [SerializeField] private GameObject[] foods;
+    private int currentFoodIndex = 0;
+
     [SerializeField] private TMP_Text resultText;
+    [SerializeField] private TMP_Text clearText;
     [SerializeField] private GameObject retryButton;
     [SerializeField] private GameObject nextButton;
 
@@ -48,6 +53,11 @@ public class CutController : MonoBehaviour
         resultText.gameObject.SetActive(false);
         retryButton.SetActive(false);
         nextButton.SetActive(false);
+
+        currentFoodIndex = 0;
+        foodRenderer = foods[currentFoodIndex].GetComponent<Renderer>();
+
+        clearText.gameObject.SetActive(false);
     }
 
     void Update()
@@ -284,7 +294,18 @@ public class CutController : MonoBehaviour
         if (canNext)
         {
             retryButton.SetActive(false);
-            nextButton.SetActive(true);
+
+            // 最後のFoodなら、そのままクリア
+            if (currentFoodIndex == foods.Length - 1)
+            {
+                nextButton.SetActive(false);
+                clearText.gameObject.SetActive(true);
+            }
+            else
+            {
+                // まだ次のFoodがある
+                nextButton.SetActive(true);
+            }
         }
         else
         {
@@ -991,4 +1012,50 @@ public class CutController : MonoBehaviour
         isDragging = false;
         hasCut = false;
     }
+
+    public void Next()
+    {
+        // 前のFoodの分割Meshを削除
+        if (splitObjectA != null)
+        {
+            Destroy(splitObjectA);
+            splitObjectA = null;
+        }
+
+        if (splitObjectB != null)
+        {
+            Destroy(splitObjectB);
+            splitObjectB = null;
+        }
+
+        currentFoodIndex++;
+
+        if (currentFoodIndex >= foods.Length)
+        {
+            resultText.gameObject.SetActive(false);
+            retryButton.SetActive(false);
+            nextButton.SetActive(false);
+
+            clearText.gameObject.SetActive(true);
+
+            Debug.Log("全ステージクリア！");
+            return;
+
+        }
+
+        foods[currentFoodIndex].SetActive(true);
+        foodRenderer = foods[currentFoodIndex].GetComponent<Renderer>();
+
+        resultText.text = "";
+        resultText.gameObject.SetActive(false);
+
+        retryButton.SetActive(false);
+        nextButton.SetActive(false);
+
+        lineRenderer.enabled = false;
+
+        isDragging = false;
+        hasCut = false;
+    }
+
 }
